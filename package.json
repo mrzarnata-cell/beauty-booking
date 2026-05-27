@@ -1,0 +1,15 @@
+{
+  "name": "beauty-booking",
+  "version": "1.0.0",
+  "description": "Haoua Beauty Center - Booking Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2",
+    "nodemailer": "^8.0.9",
+    "sql.js": "^1.14.1"
+  }
+}

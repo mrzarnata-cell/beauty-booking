@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Haoua Beauty Center - Admin</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-container { max-width: 1000px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #fdf6f0; color: #c4845a; font-weight: 500; }
+    tr:hover { background: #fefcf9; }
+    .status-pending { color: #e65100; font-weight: 500; }
+    .status-confirmed { color: #2e7d32; font-weight: 500; }
+    .status-cancelled { color: #c62828; font-weight: 500; }
+    .delete-btn { background: none; border: none; color: #c62828; cursor: pointer; font-size: 1.1rem; }
+    .delete-btn:hover { opacity: 0.7; }
+    .no-bookings { text-align: center; color: #999; padding: 40px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+    .badge.pending { background: #fff3e0; color: #e65100; }
+    .badge.confirmed { background: #e8f5e9; color: #2e7d32; }
+    .badge.cancelled { background: #fbe9e7; color: #c62828; }
+    .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .nav-bar a { color: #c4845a; text-decoration: none; }
+    .nav-bar a:hover { text-decoration: underline; }
+    .refresh-btn { background: #c4845a; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .refresh-btn:hover { opacity: 0.9; }
+    @media (max-width: 700px) {
+      table { font-size: 0.8rem; }
+      th, td { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="logo.jpeg" alt="Haoua Beauty Center" class="logo">
+    <h1>Haoua Beauty Center</h1>
+    <p>Appointment Management</p>
+  </div>
+
+  <div class="container admin-container">
+    <div class="card">
+      <div class="nav-bar">
+        <h2>All Bookings</h2>
+        <div>
+          <span id="count" style="color:#999;margin-right:15px;font-size:0.9rem;"></span>
+          <a href="/index.html">← Back to booking</a>
+        </div>
+      </div>
+      <div id="bookings-table">
+        <p class="no-bookings">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadBookings() {
+      const div = document.getElementById('bookings-table');
+      const count = document.getElementById('count');
+      try {
+        const res = await fetch('/api/bookings');
+        const bookings = await res.json();
+        count.textContent = `${bookings.length} booking${bookings.length !== 1 ? 's' : ''}`;
+        
+        if (bookings.length === 0) {
+          div.innerHTML = '<p class="no-bookings">No bookings yet</p>';
+          return;
+        }
+
+        let html = `<table>
+          <thead><tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Service</th>
+            <th>Notes</th>
+            <th>Status</th>
+            <th></th>
+          </tr></thead><tbody>`;
+
+        bookings.forEach(b => {
+          const statusClass = b.status === 'confirmed' ? 'confirmed' : b.status === 'cancelled' ? 'cancelled' : 'pending';
+          html += `<tr>
+            <td>${b.date}</td>
+            <td>${b.time}</td>
+            <td>${b.name}${b.email ? `<br><small style="color:#999;">${b.email}</small>` : ''}</td>
+            <td>${b.phone}</td>
+            <td>${b.service}</td>
+            <td>${b.description || '—'}</td>
+            <td><span class="badge ${statusClass}">${b.status}</span></td>
+            <td><button class="delete-btn" onclick="deleteBooking(${b.id})" title="Delete">✕</button></td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        div.innerHTML = html;
+      } catch {
+        div.innerHTML = '<p class="no-bookings">Failed to load bookings.</p>';
+      }
+    }
+
+    async function deleteBooking(id) {
+      if (!confirm('Delete this booking?')) return;
+      await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+      loadBookings();
+    }
+
+    loadBookings();
+  </script>
+</body>
+</html>
